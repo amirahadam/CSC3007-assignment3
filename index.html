@@ -6,6 +6,7 @@
 </head>
 <body>
 <svg></svg>
+<div class="tooltip"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <script>
@@ -34,8 +35,28 @@ svg.append("g")
     .data(data[0].features)
     .enter()
     .append("path")
-    .attr("d", geopath)
-    .attr("fill", "black");
+        .attr("d", geopath)
+        .attr("fill", "#777")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 0.5)
+    .on("mouseover", (event, d) => {
+        d3.select(".tooltip")
+        .text(d.properties.Name)
+        .style("position", "absolute")
+        .style("background", "#fff")
+        .style("left", (event.pageX) + "px")
+        .style("top", (event.pageY) + "px");
+
+        d3.select(event.currentTarget)
+        .style("fill", "#01A6EA");
+    })
+    .on("mouseout", (event, d) => {
+        d3.select(".tooltip")
+        .text("");
+
+        d3.select(event.currentTarget)
+        .style("fill", "#777");
+    })
 })
 
 </script>
