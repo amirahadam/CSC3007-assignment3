@@ -2,12 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <style></style>
+  <title>Assignment 3</title>
 </head>
 <body>
 <svg></svg>
 <div class="tooltip"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
+
 
 <script>
 
@@ -19,15 +20,29 @@ let svg = d3.select("svg")
 // Load external data
 Promise.all([d3.json("https://chi-loong.github.io/CSC3007/assignments/sgmap.json"), d3.csv("population2021.csv")]).then(data => {
 
-console.log(data[0]);
-console.log(data[1]);
-
 // Map and projection
 var projection = d3.geoMercator()
     .center([103.851959, 1.290270])
     .fitExtent([[20, 20], [980, 580]], data[0]);
 
 let geopath = d3.geoPath().projection(projection);
+
+var records = "";
+
+function getPopulation(zone){
+    records = data[1];
+    var population = "";
+    for(let r in records){
+        if(records[r].Subzone.toUpperCase().includes(zone)){
+            population = records[r].Population;
+            break;
+        }
+        else{
+            population = "-";
+        }
+    }
+    return population;
+}
 
 svg.append("g")
     .attr("id", "districts")
@@ -39,27 +54,28 @@ svg.append("g")
         .attr("fill", "#777")
         .attr("stroke", "#fff")
         .attr("stroke-width", 0.5)
+    // mouse over
     .on("mouseover", (event, d) => {
         d3.select(".tooltip")
-        .text(d.properties.Name)
+        .text(d.properties.Name + "\n" + "POPULATION: " + getPopulation(d.properties.Name))
         .style("position", "absolute")
         .style("background", "#fff")
         .style("left", (event.pageX) + "px")
         .style("top", (event.pageY) + "px");
-
         d3.select(event.currentTarget)
-        .style("fill", "#01A6EA");
+
+        .style("stroke","#F4BB44")
+        .style("stroke-width", "5");
     })
+    // mouse out
     .on("mouseout", (event, d) => {
         d3.select(".tooltip")
         .text("");
-
         d3.select(event.currentTarget)
-        .style("fill", "#777");
+        .style("stroke", "#fff")
+        .style("stroke-width", "0.5");
     })
 })
-
 </script>
-
 </body>
 </html>
