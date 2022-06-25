@@ -29,7 +29,7 @@
     var legend_labels = ["<1000 ", "1000 - 5000", "5000-10000", "10000-20000", "20000+"]
     var color = d3.scaleThreshold()
         .domain(color_domain)
-        .range(["#006837", "#1a9850", "#66bd63", "#a6d96a", "#d9ef8b"]);
+        .range(d3.schemeBlues[6]);
     
     for(let i =0; i < data[1].length; i++){
         console.log("Subzone: " + populationlist[i].Subzone + " Population: " + populationlist[i].Population);
