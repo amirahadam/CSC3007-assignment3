@@ -8,74 +8,121 @@
 <svg></svg>
 <div class="tooltip"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 
 <script>
+    let width = 1000, height = 600;
+    
+    let svg = d3.select("svg")
+        .attr("viewBox", "0 0 " + width + " " + height)
+    
+    // Load external data
+    Promise.all([d3.json("https://chi-loong.github.io/CSC3007/assignments/sgmap.json"), d3.csv("population2021.csv")]).then(data => {
+    
+    // console.log(data[0]);
+    // console.log(data[1]);
+    var maplist = data[0];
+    var populationlist= data[1];
 
-let width = 1000, height = 600;
-
-let svg = d3.select("svg")
-    .attr("viewBox", "0 0 " + width + " " + height)
-
-// Load external data
-Promise.all([d3.json("https://chi-loong.github.io/CSC3007/assignments/sgmap.json"), d3.csv("population2021.csv")]).then(data => {
-
-// Map and projection
-var projection = d3.geoMercator()
-    .center([103.851959, 1.290270])
-    .fitExtent([[20, 20], [980, 580]], data[0]);
-
-let geopath = d3.geoPath().projection(projection);
-
-var records = "";
-
-function getPopulation(zone){
-    records = data[1];
-    var population = "";
-    for(let r in records){
-        if(records[r].Subzone.toUpperCase().includes(zone)){
-            population = records[r].Population;
-            break;
-        }
-        else{
-            population = "-";
-        }
+    var color_domain = [1000, 5000, 10000, 20000, 300000]
+    var legend_labels = ["<1000 ", "1000 - 5000", "5000-10000", "10000-20000", "20000+"]
+    var color = d3.scaleThreshold()
+        .domain(color_domain)
+        .range(["#006837", "#1a9850", "#66bd63", "#a6d96a", "#d9ef8b"]);
+    
+    for(let i =0; i < data[1].length; i++){
+        console.log("Subzone: " + populationlist[i].Subzone + " Population: " + populationlist[i].Population);
     }
-    return population;
-}
 
-svg.append("g")
-    .attr("id", "districts")
-    .selectAll("path")
-    .data(data[0].features)
-    .enter()
-    .append("path")
+    // Get population of selected zone
+    function getPopulation(zone){
+        var population = "";
+        for(let i =0; i < data[1].length; i++){
+            if(populationlist[i].Subzone.toUpperCase().includes(zone)){
+                if(populationlist[i].Population == '-'){
+                    console.log("Subzone: " + populationlist[i].Subzone + " " + populationlist[i].Population);
+                    population = 0;
+                    break;
+                }
+                else{
+                    population = populationlist[i].Population;
+                    break;
+                }
+            }
+            else{
+                population = 0;
+            }
+        }
+        return population;
+    }
+
+    // Map and projection
+    var projection = d3.geoMercator()
+        .center([103.851959, 1.290270])
+        .fitExtent([[20, 20], [980, 580]], data[0]);
+    
+    let geopath = d3.geoPath().projection(projection);
+    
+    svg.append("g")
+        .attr("id", "districts")
+        .selectAll("path")
+        .data(data[0].features)
+        .enter()
+        .append("path")
         .attr("d", geopath)
-        .attr("fill", "#777")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 0.5)
+        // set the color of each country
+        .attr("fill", function (d) {
+            c = getPopulation(d.properties.Name);
+            return color(c);
+        })
+    
     // mouse over
     .on("mouseover", (event, d) => {
         d3.select(".tooltip")
-        .text(d.properties.Name + "\n" + "POPULATION: " + getPopulation(d.properties.Name))
+        .text(d.properties.Name + " POPULATION: " + getPopulation(d.properties.Name))
         .style("position", "absolute")
         .style("background", "#fff")
         .style("left", (event.pageX) + "px")
-        .style("top", (event.pageY) + "px");
+        .style("top", (event.pageY) + "px")
         d3.select(event.currentTarget)
-
+        
         .style("stroke","#F4BB44")
         .style("stroke-width", "5");
     })
+
     // mouse out
     .on("mouseout", (event, d) => {
         d3.select(".tooltip")
         .text("");
         d3.select(event.currentTarget)
         .style("stroke", "#fff")
-        .style("stroke-width", "0.5");
+        .style("stroke-width", "0");
+    
     })
-})
+
+    // legends
+    var legend = svg.selectAll("g.legend")
+    .data(color_domain)
+    .enter().append("g")
+    .attr("class", "legend");
+    
+    var ls_w = 20, ls_h = 20;
+    
+    legend.append("rect")
+    .attr("x", 20)
+    .attr("y", function(d, i){ return height - (i*ls_h) - 2*ls_h;})
+    .attr("width", ls_w)
+    .attr("height", ls_h)
+    .style("fill", function(d, i) { return color(d); })
+    .style("opacity", 0.8);
+    
+    legend.append("text")
+    .attr("x", 50)
+    .attr("y", function(d, i){ return height - (i*ls_h) - ls_h - 4;})
+    .text(function(d, i){ return legend_labels[i]; });
+})  
 </script>
+
 </body>
 </html>
