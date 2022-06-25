@@ -29,7 +29,7 @@
     var legend_labels = ["<1000 ", "1000 - 5000", "5000-10000", "10000-20000", "20000+"]
     var color = d3.scaleThreshold()
         .domain(color_domain)
-        .range(d3.schemeBlues[6]);
+        .range(d3.schemeGreens[6]);
     
     for(let i =0; i < data[1].length; i++){
         console.log("Subzone: " + populationlist[i].Subzone + " Population: " + populationlist[i].Population);
@@ -88,7 +88,7 @@
         d3.select(event.currentTarget)
         
         .style("stroke","#F4BB44")
-        .style("stroke-width", "5");
+        .style("stroke-width", "3");
     })
 
     // mouse out
